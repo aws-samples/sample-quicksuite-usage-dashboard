@@ -1,0 +1,13 @@
+[tool.pytest.ini_options]
+testpaths = ["test/unit"]
+pythonpath = [
+    "test/unit",
+    "modules/quicksuite-analytics/lambda/parser",
+    "modules/quicksuite-analytics/lambda/categorizer",
+    "modules/quicksuite-analytics/lambda/writer",
+    "modules/quicksuite-analytics/lambda/sfn_trigger",
+    "modules/quicksuite-analytics/lambda/user_idc_list",
+    "modules/quicksuite-analytics/lambda/user_idc_describe",
+    "modules/quicksuite-analytics/lambda/user_qs_list",
+    "modules/quicksuite-analytics/lambda/user_merge",
+]
