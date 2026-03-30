@@ -1,6 +1,14 @@
 locals {
   cloudtrail_enabled = var.cloudtrail_mode != "disabled"
-  cloudtrail_bucket  = var.cloudtrail_mode == "new" ? aws_s3_bucket.quicksuite_logs.id : var.cloudtrail_s3_bucket
+  cloudtrail_bucket = var.cloudtrail_mode == "new" ? aws_s3_bucket.quicksuite_logs.id : (
+    var.cloudtrail_config != null ? var.cloudtrail_config.s3_bucket : null
+  )
+  cloudtrail_prefix = var.cloudtrail_config != null ? coalesce(
+    var.cloudtrail_config.s3_prefix,
+    var.cloudtrail_config.org_id != null
+      ? "AWSLogs/${var.cloudtrail_config.org_id}/${data.aws_caller_identity.current.account_id}/CloudTrail/${data.aws_region.current.id}"
+      : "AWSLogs/${data.aws_caller_identity.current.account_id}/CloudTrail/${data.aws_region.current.id}"
+  ) : "AWSLogs/${data.aws_caller_identity.current.account_id}/CloudTrail/${data.aws_region.current.id}"
 }
 
 resource "aws_cloudtrail" "quicksuite" {

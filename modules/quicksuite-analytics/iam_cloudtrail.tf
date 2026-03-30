@@ -8,8 +8,8 @@ resource "aws_iam_role_policy" "quicksight_cloudtrail_access" {
       Effect = "Allow"
       Action = ["s3:GetObject", "s3:GetBucketLocation", "s3:ListBucket"]
       Resource = [
-        "arn:aws:s3:::${var.cloudtrail_s3_bucket}",
-        "arn:aws:s3:::${var.cloudtrail_s3_bucket}/*"
+        "arn:aws:s3:::${var.cloudtrail_config.s3_bucket}",
+        "arn:aws:s3:::${var.cloudtrail_config.s3_bucket}/*"
       ]
     }]
   })

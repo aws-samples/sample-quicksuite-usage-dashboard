@@ -31,7 +31,7 @@ resource "aws_lambda_function" "user_idc_list" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   memory_size      = 1024
   source_code_hash = data.archive_file.user_idc_list.output_base64sha256
@@ -51,7 +51,7 @@ resource "aws_lambda_function" "user_idc_describe" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 30
   memory_size      = 256
   source_code_hash = data.archive_file.user_idc_describe.output_base64sha256
@@ -71,7 +71,7 @@ resource "aws_lambda_function" "user_qs_list" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   memory_size      = 256
   source_code_hash = data.archive_file.user_qs_list.output_base64sha256
@@ -90,7 +90,7 @@ resource "aws_lambda_function" "user_merge" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 300
   memory_size      = 2048
   source_code_hash = data.archive_file.user_merge.output_base64sha256

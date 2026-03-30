@@ -1062,127 +1062,139 @@ resource "aws_quicksight_analysis" "quicksuite" {
     # --- BI Assets section filters (on asset-inventory sheet) ---
 
     # Filter: dashboard-dataset table → only Dashboard asset type
-    filter_groups {
-      filter_group_id = "bi-dashboard-filter-group"
-      filters {
-        category_filter {
-          filter_id = "bi-dashboard-filter"
-          column {
-            data_set_identifier = "bi-assets"
-            column_name         = "Asset Type"
-          }
-          configuration {
-            filter_list_configuration {
-              match_operator  = "CONTAINS"
-              category_values = ["Dashboard"]
+    dynamic "filter_groups" {
+      for_each = local.cloudtrail_enabled ? [1] : []
+      content {
+        filter_group_id = "bi-dashboard-filter-group"
+        filters {
+          category_filter {
+            filter_id = "bi-dashboard-filter"
+            column {
+              data_set_identifier = "bi-assets"
+              column_name         = "Asset Type"
+            }
+            configuration {
+              filter_list_configuration {
+                match_operator  = "CONTAINS"
+                category_values = ["Dashboard"]
+              }
             }
           }
         }
-      }
-      scope_configuration {
-        selected_sheets {
-          sheet_visual_scoping_configurations {
-            scope      = "SELECTED_VISUALS"
-            sheet_id   = "asset-inventory"
-            visual_ids = ["bi-total-dashboards", "bi-dashboard-dataset-table"]
+        scope_configuration {
+          selected_sheets {
+            sheet_visual_scoping_configurations {
+              scope      = "SELECTED_VISUALS"
+              sheet_id   = "asset-inventory"
+              visual_ids = ["bi-total-dashboards", "bi-dashboard-dataset-table"]
+            }
           }
         }
+        cross_dataset = "ALL_DATASETS"
+        status        = "ENABLED"
       }
-      cross_dataset = "ALL_DATASETS"
-      status        = "ENABLED"
     }
 
     # Filter: analysis visuals → only Analysis asset type
-    filter_groups {
-      filter_group_id = "bi-analysis-filter-group"
-      filters {
-        category_filter {
-          filter_id = "bi-analysis-filter"
-          column {
-            data_set_identifier = "bi-assets"
-            column_name         = "Asset Type"
-          }
-          configuration {
-            filter_list_configuration {
-              match_operator  = "CONTAINS"
-              category_values = ["Analysis"]
+    dynamic "filter_groups" {
+      for_each = local.cloudtrail_enabled ? [1] : []
+      content {
+        filter_group_id = "bi-analysis-filter-group"
+        filters {
+          category_filter {
+            filter_id = "bi-analysis-filter"
+            column {
+              data_set_identifier = "bi-assets"
+              column_name         = "Asset Type"
+            }
+            configuration {
+              filter_list_configuration {
+                match_operator  = "CONTAINS"
+                category_values = ["Analysis"]
+              }
             }
           }
         }
-      }
-      scope_configuration {
-        selected_sheets {
-          sheet_visual_scoping_configurations {
-            scope      = "SELECTED_VISUALS"
-            sheet_id   = "asset-inventory"
-            visual_ids = ["bi-total-analyses", "bi-analysis-status"]
+        scope_configuration {
+          selected_sheets {
+            sheet_visual_scoping_configurations {
+              scope      = "SELECTED_VISUALS"
+              sheet_id   = "asset-inventory"
+              visual_ids = ["bi-total-analyses", "bi-analysis-status"]
+            }
           }
         }
+        cross_dataset = "ALL_DATASETS"
+        status        = "ENABLED"
       }
-      cross_dataset = "ALL_DATASETS"
-      status        = "ENABLED"
     }
 
     # Filter: datasource visuals → only Datasource asset type
-    filter_groups {
-      filter_group_id = "bi-datasource-filter-group"
-      filters {
-        category_filter {
-          filter_id = "bi-datasource-filter"
-          column {
-            data_set_identifier = "bi-assets"
-            column_name         = "Asset Type"
-          }
-          configuration {
-            filter_list_configuration {
-              match_operator  = "CONTAINS"
-              category_values = ["Datasource"]
+    dynamic "filter_groups" {
+      for_each = local.cloudtrail_enabled ? [1] : []
+      content {
+        filter_group_id = "bi-datasource-filter-group"
+        filters {
+          category_filter {
+            filter_id = "bi-datasource-filter"
+            column {
+              data_set_identifier = "bi-assets"
+              column_name         = "Asset Type"
+            }
+            configuration {
+              filter_list_configuration {
+                match_operator  = "CONTAINS"
+                category_values = ["Datasource"]
+              }
             }
           }
         }
-      }
-      scope_configuration {
-        selected_sheets {
-          sheet_visual_scoping_configurations {
-            scope      = "SELECTED_VISUALS"
-            sheet_id   = "asset-inventory"
-            visual_ids = ["bi-total-datasources", "bi-dataset-datasource-table", "bi-datasource-types"]
+        scope_configuration {
+          selected_sheets {
+            sheet_visual_scoping_configurations {
+              scope      = "SELECTED_VISUALS"
+              sheet_id   = "asset-inventory"
+              visual_ids = ["bi-total-datasources", "bi-dataset-datasource-table", "bi-datasource-types"]
+            }
           }
         }
+        cross_dataset = "ALL_DATASETS"
+        status        = "ENABLED"
       }
-      cross_dataset = "ALL_DATASETS"
-      status        = "ENABLED"
     }
 
     # Filter: orphaned datasets → only Is Orphaned = Yes
-    filter_groups {
-      filter_group_id = "bi-orphaned-filter-group"
-      filters {
-        category_filter {
-          filter_id = "bi-orphaned-filter"
-          column {
-            data_set_identifier = "dataset-health"
-            column_name         = "Is Orphaned"
-          }
-          configuration {
-            filter_list_configuration {
-              match_operator  = "CONTAINS"
-              category_values = ["Yes"]
+    dynamic "filter_groups" {
+      for_each = local.cloudtrail_enabled ? [1] : []
+      content {
+        filter_group_id = "bi-orphaned-filter-group"
+        filters {
+          category_filter {
+            filter_id = "bi-orphaned-filter"
+            column {
+              data_set_identifier = "dataset-health"
+              column_name         = "Is Orphaned"
+            }
+            configuration {
+              filter_list_configuration {
+                match_operator  = "CONTAINS"
+                category_values = ["Yes"]
+              }
             }
           }
         }
-      }
-      scope_configuration {
-        selected_sheets {
-          sheet_visual_scoping_configurations {
-            scope      = "SELECTED_VISUALS"
-            sheet_id   = "asset-inventory"
-            visual_ids = ["bi-orphaned-datasets"]
+        scope_configuration {
+          selected_sheets {
+            sheet_visual_scoping_configurations {
+              scope      = "SELECTED_VISUALS"
+              sheet_id   = "asset-inventory"
+              visual_ids = ["bi-orphaned-datasets"]
+            }
           }
         }
+        cross_dataset = "ALL_DATASETS"
+        status        = "ENABLED"
       }
-      cross_dataset = "ALL_DATASETS"
-      status        = "ENABLED"
     }
 
     # ==================== Sheet 1: Summary (default) ====================

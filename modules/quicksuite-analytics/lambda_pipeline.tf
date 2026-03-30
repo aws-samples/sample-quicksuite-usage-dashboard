@@ -1,7 +1,13 @@
+locals {
+  lambda_layer_arn = var.lambda_layer_arn != null ? var.lambda_layer_arn : aws_lambda_layer_version.dependencies[0].arn
+}
+
 # Dependencies Layer (Docker build)
 # Builds an ARM64 Lambda layer with shared dependencies. Requires Docker to be installed and running.
 # The layer.zip is rebuilt when requirements.txt or Dockerfile change.
+# Skipped when var.lambda_layer_arn is provided.
 resource "null_resource" "dependencies_layer_build" {
+  count = var.lambda_layer_arn == null ? 1 : 0
   triggers = {
     requirements = filemd5("${path.module}/lambda/dependencies_layer/requirements.txt")
     dockerfile   = filemd5("${path.module}/lambda/dependencies_layer/Dockerfile")
@@ -41,6 +47,7 @@ resource "null_resource" "dependencies_layer_build" {
 
 # Upload layer zip to S3 first (avoids 67MB direct upload limit for PublishLayerVersion)
 resource "aws_s3_object" "dependencies_layer" {
+  count  = var.lambda_layer_arn == null ? 1 : 0
   bucket = aws_s3_bucket.quicksuite_logs.id
   key    = "lambda-layers/dependencies-layer.zip"
   source = "${path.module}/lambda/dependencies_layer/layer.zip"
@@ -50,9 +57,10 @@ resource "aws_s3_object" "dependencies_layer" {
 }
 
 resource "aws_lambda_layer_version" "dependencies" {
-  s3_bucket           = aws_s3_object.dependencies_layer.bucket
-  s3_key              = aws_s3_object.dependencies_layer.key
-  s3_object_version   = aws_s3_object.dependencies_layer.version_id
+  count               = var.lambda_layer_arn == null ? 1 : 0
+  s3_bucket           = aws_s3_object.dependencies_layer[0].bucket
+  s3_key              = aws_s3_object.dependencies_layer[0].key
+  s3_object_version   = aws_s3_object.dependencies_layer[0].version_id
   layer_name          = "quicksuite-dependencies"
   compatible_runtimes = ["python3.14"]
   source_code_hash    = fileexists("${path.module}/lambda/dependencies_layer/layer.zip") ? filebase64sha256("${path.module}/lambda/dependencies_layer/layer.zip") : "pending-build"
@@ -93,7 +101,7 @@ resource "aws_lambda_function" "trigger" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 10
   source_code_hash = data.archive_file.sfn_trigger.output_base64sha256
 
@@ -111,7 +119,7 @@ resource "aws_lambda_function" "parser" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   source_code_hash = data.archive_file.parser.output_base64sha256
 }
@@ -123,7 +131,7 @@ resource "aws_lambda_function" "categorizer" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 90
   source_code_hash = data.archive_file.categorizer.output_base64sha256
 
@@ -145,7 +153,7 @@ resource "aws_lambda_function" "writer" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   source_code_hash = data.archive_file.writer.output_base64sha256
 

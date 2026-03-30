@@ -27,3 +27,7 @@ output "bucket_name" {
 output "dashboard_id" {
   value = module.quicksuite_analytics.dashboard_id
 }
+
+output "cloudtrail_cross_account_bucket_policy" {
+  value = module.quicksuite_analytics.cloudtrail_cross_account_bucket_policy
+}

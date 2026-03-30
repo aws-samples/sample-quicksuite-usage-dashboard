@@ -61,7 +61,7 @@ resource "aws_lambda_function" "qs_list_datasets" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_list_datasets.output_base64sha256
@@ -80,7 +80,7 @@ resource "aws_lambda_function" "qs_list_dashboards" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_list_dashboards.output_base64sha256
@@ -99,7 +99,7 @@ resource "aws_lambda_function" "qs_list_analyses" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 60
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_list_analyses.output_base64sha256
@@ -118,7 +118,7 @@ resource "aws_lambda_function" "qs_describe_dataset" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 90
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_describe_dataset.output_base64sha256
@@ -137,7 +137,7 @@ resource "aws_lambda_function" "qs_describe_dashboard" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 90
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_describe_dashboard.output_base64sha256
@@ -156,7 +156,7 @@ resource "aws_lambda_function" "qs_describe_analysis" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 90
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_describe_analysis.output_base64sha256
@@ -175,7 +175,7 @@ resource "aws_lambda_function" "qs_write_metadata" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 120
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_write_metadata.output_base64sha256
@@ -194,7 +194,7 @@ resource "aws_lambda_function" "qs_collect_datasources" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 300
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_collect_datasources.output_base64sha256
@@ -213,7 +213,7 @@ resource "aws_lambda_function" "qs_collect_spice" {
   handler          = "index.handler"
   runtime          = "python3.14"
   architectures    = ["arm64"]
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [local.lambda_layer_arn]
   timeout          = 120
   memory_size      = var.qs_metadata_lambda_memory
   source_code_hash = data.archive_file.qs_collect_spice.output_base64sha256

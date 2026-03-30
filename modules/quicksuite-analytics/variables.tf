@@ -38,6 +38,12 @@ variable "identity_store_id" {
   type        = string
 }
 
+variable "lambda_layer_arn" {
+  description = "ARN of a pre-built Lambda layer containing boto3 and pyarrow. When provided, skips Docker build and uses this layer for all functions."
+  type        = string
+  default     = null
+}
+
 variable "cloudtrail_mode" {
   description = "CloudTrail integration mode for asset tracking: 'new' (create trail), 'existing' (use existing bucket), or 'disabled'"
   type        = string
@@ -48,13 +54,17 @@ variable "cloudtrail_mode" {
   }
 }
 
-variable "cloudtrail_s3_bucket" {
-  description = "S3 bucket name for existing CloudTrail logs (required when cloudtrail_mode = 'existing')"
-  type        = string
-  default     = null
+variable "cloudtrail_config" {
+  description = "Configuration for existing CloudTrail integration (used when cloudtrail_mode = 'existing')"
+  type = object({
+    s3_bucket = string
+    org_id    = optional(string)
+    s3_prefix = optional(string)
+  })
+  default = null
   validation {
-    condition     = var.cloudtrail_mode != "existing" || (var.cloudtrail_s3_bucket != null && var.cloudtrail_s3_bucket != "")
-    error_message = "cloudtrail_s3_bucket is required when cloudtrail_mode = 'existing'."
+    condition     = var.cloudtrail_mode != "existing" || (var.cloudtrail_config != null && var.cloudtrail_config.s3_bucket != "")
+    error_message = "cloudtrail_config with s3_bucket is required when cloudtrail_mode = 'existing'."
   }
 }
 

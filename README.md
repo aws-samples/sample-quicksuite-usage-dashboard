@@ -82,7 +82,7 @@ The module creates all infrastructure: S3 bucket, CloudWatch log delivery, Lambd
 - Active Amazon Quick Suite instance (Enterprise or Professional edition)
 - IAM Identity Center configured
 - QuickSight Enterprise edition with an admin group
-- Docker (for building the Lambda layer at `terraform apply` time)
+- Docker (for building the Lambda layer at `terraform apply` time, unless `lambda_layer_arn` is provided)
 - Bedrock model access (if categorization enabled): `global.amazon.nova-2-lite-v1:0` in configured region
 
 ## Configuration
@@ -97,13 +97,51 @@ The module creates all infrastructure: S3 bucket, CloudWatch log delivery, Lambd
 | `spice_refresh_interval` | string | `"MINUTE15"` | Incremental SPICE refresh: MINUTE15, MINUTE30, HOURLY, DAILY |
 | `quicksight_service_role_name` | string | `"aws-quicksight-service-role-v0"` | Existing QuickSight service IAM role name |
 | `cloudtrail_mode` | string | `"new"` | `"new"` = create trail, `"existing"` = use existing bucket, `"disabled"` = skip asset tracking |
-| `cloudtrail_s3_bucket` | string | `null` | Required when `cloudtrail_mode = "existing"` |
+| `cloudtrail_config` | object | `null` | Configuration for existing CloudTrail: `{ s3_bucket, org_id?, s3_prefix? }`. Required when `cloudtrail_mode = "existing"` |
 | `user_tier_config` | object | see below | User segmentation thresholds and percentiles |
 | `categorization_config` | object | see below | Bedrock message categorization settings |
 | `categorization_taxonomy_file` | string | `null` | Path to custom taxonomy JSON (DynamoDB format). Uses built-in default if null |
 | `qs_metadata_sync_interval` | string | `"DAILY"` | QuickSight metadata sync: MINUTE15, MINUTE30, HOURLY, HOURS6, DAILY |
 | `user_sync_interval` | string | `"HOURS6"` | User sync frequency: MINUTE15, MINUTE30, HOURLY, HOURS6, DAILY |
 | `qs_metadata_lambda_memory` | number | `256` | Memory (MB) for metadata collectors. Increase for 10K+ datasets |
+| `lambda_layer_arn` | string | `null` | ARN of a pre-built Lambda layer (boto3 + pyarrow). Skips Docker build when provided. Format: `arn:aws:lambda:REGION:ACCOUNT:layer:LAYER_NAME:VERSION` |
+
+### QuickSight service role
+
+The `quicksight_service_role_name` must be the IAM role that QuickSight uses in your account. The module automatically attaches the required S3 read permissions to this role --- you do not need to configure permissions manually.
+
+To find your role name, go to the QuickSight console: **Manage QuickSight → Security & permissions → QuickSight access to AWS services**. Common names include `aws-quicksight-service-role-v0` (default), `aws-quicksight-s3-consumers-role-v0`, or a custom name your organization created.
+
+The module attaches these inline policies to the role:
+- **`QuickSightS3Access-quicksuite`** --- read access to the quicksuite-logs S3 bucket (+ KMS decrypt if `s3_kms_key_arn` is set)
+- **`QuickSightCloudTrailAccess-quicksuite`** --- read access to the CloudTrail S3 bucket (only when `cloudtrail_mode = "existing"`)
+
+### Pre-built Lambda layer
+
+If Docker is not available in your deployment environment (e.g., CI/CD pipelines), you can pre-build the layer externally and pass its ARN:
+
+```hcl
+lambda_layer_arn = "arn:aws:lambda:eu-west-1:123456789012:layer:quicksuite-dependencies:1"
+```
+
+The layer must contain `boto3` and `pyarrow` for Python 3.14 ARM64. Build it using the Dockerfile in `modules/quicksuite-analytics/lambda/dependencies_layer/`:
+
+```bash
+cd modules/quicksuite-analytics/lambda/dependencies_layer
+docker build --platform linux/arm64 -t quicksuite-layer .
+container_id=$(docker create quicksuite-layer)
+docker cp $container_id:/opt/python ./python && docker rm $container_id
+zip -r layer.zip python && rm -rf python
+
+aws lambda publish-layer-version \
+  --layer-name quicksuite-dependencies \
+  --zip-file fileb://layer.zip \
+  --compatible-runtimes python3.14 \
+  --compatible-architectures arm64 \
+  --region eu-west-1
+```
+
+Use the returned `LayerVersionArn` as the `lambda_layer_arn` value.
 
 ### Categorization configuration
 
@@ -133,6 +171,66 @@ user_tier_config = {
   regular_percentile   = 30    # next 30% = Regular
   dormant_days         = 30    # no activity = Dormant
   churned_days         = 60    # no activity = Churned
+}
+```
+
+### Cross-account CloudTrail setup
+
+If your organization uses a central logging account (common with AWS Control Tower), set `cloudtrail_mode = "existing"` and provide the bucket name:
+
+**Same-account, existing trail:**
+```hcl
+cloudtrail_mode   = "existing"
+cloudtrail_config = {
+  s3_bucket = "my-cloudtrail-bucket"
+}
+```
+
+**Cross-account (e.g., Control Tower log archive):**
+```hcl
+cloudtrail_mode   = "existing"
+cloudtrail_config = {
+  s3_bucket = "aws-controltower-logs-LOGACCOUNT-eu-west-1"
+}
+```
+
+After deploying, retrieve the bucket policy statement the logging account admin needs to add:
+
+```bash
+terraform output -raw cloudtrail_cross_account_bucket_policy | jq .
+```
+
+This outputs a ready-to-use JSON policy statement with your account ID, QuickSight role, and bucket pre-filled. The logging account admin adds this as a statement in their bucket policy.
+
+If the bucket uses a customer-managed KMS key, the logging account must also grant decrypt access:
+
+```json
+{
+  "Sid": "AllowQuickSuiteDecrypt",
+  "Effect": "Allow",
+  "Principal": {
+    "AWS": "arn:aws:iam::QUICKSUITE_ACCOUNT:role/QUICKSIGHT_SERVICE_ROLE"
+  },
+  "Action": "kms:Decrypt",
+  "Resource": "*"
+}
+```
+
+**Organization trail (org ID in S3 path):**
+```hcl
+cloudtrail_mode   = "existing"
+cloudtrail_config = {
+  s3_bucket = "central-logging-bucket"
+  org_id    = "o-abc123def4"
+}
+```
+
+**Custom prefix (non-standard path):**
+```hcl
+cloudtrail_mode   = "existing"
+cloudtrail_config = {
+  s3_bucket  = "central-logging-bucket"
+  s3_prefix  = "custom/AWSLogs/o-abc123/123456789012/CloudTrail/eu-west-1"
 }
 ```
 
@@ -224,6 +322,7 @@ The S3 bucket policy includes explicit Deny statements on PII-containing prefixe
 | `bucket_arn` | S3 bucket ARN |
 | `dashboard_id` | QuickSight dashboard ID |
 | `user_sync_sfn_arn` | User sync state machine ARN |
+| `cloudtrail_cross_account_bucket_policy` | Ready-to-use bucket policy JSON for cross-account CloudTrail (null when not applicable) |
 
 ## Development
 
