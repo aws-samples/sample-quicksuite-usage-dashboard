@@ -122,6 +122,44 @@ The module attaches these inline policies to the role:
 - **`QuickSightS3Access-quicksuite`** --- read access to the quicksuite-logs S3 bucket (+ KMS decrypt if `s3_kms_key_arn` is set)
 - **`QuickSightCloudTrailAccess-quicksuite`** --- read access to the CloudTrail S3 bucket (only when `cloudtrail_mode = "existing"`)
 
+### KMS encryption (`s3_kms_key_arn`)
+
+If you provide a customer-managed KMS key via `s3_kms_key_arn`, the module configures the S3 bucket to use it and grants all Lambda/SFN roles `kms:Decrypt`, `kms:GenerateDataKey`, and `kms:DescribeKey` via IAM policies.
+
+However, **you must also update the KMS key policy** to allow the CloudWatch log delivery service to write encrypted logs. Without this, vended logs silently fail to deliver to S3. Add this statement to your key policy:
+
+```json
+{
+  "Sid": "AllowCloudWatchLogsDelivery",
+  "Effect": "Allow",
+  "Principal": {
+    "Service": "delivery.logs.amazonaws.com"
+  },
+  "Action": [
+    "kms:GenerateDataKey*",
+    "kms:Encrypt",
+    "kms:Decrypt",
+    "kms:DescribeKey"
+  ],
+  "Resource": "*",
+  "Condition": {
+    "StringEquals": {
+      "aws:SourceAccount": "YOUR_ACCOUNT_ID"
+    }
+  }
+}
+```
+
+This can be added in the KMS console (**KMS → Customer managed keys → select key → Key policy → Edit**) or via CLI:
+
+```bash
+aws kms get-key-policy --key-id YOUR_KEY_ARN --policy-name default --output text > /tmp/kms-policy.json
+# Edit /tmp/kms-policy.json to add the statement above
+aws kms put-key-policy --key-id YOUR_KEY_ARN --policy-name default --policy file:///tmp/kms-policy.json
+```
+
+If you don't need KMS encryption, leave `s3_kms_key_arn = null` (default) --- the bucket will use AES256 (SSE-S3) and no key policy changes are needed.
+
 ### Pre-built Lambda layer
 
 If Docker is not available in your deployment environment (e.g., CI/CD pipelines), you can pre-build the layer externally and pass its ARN:

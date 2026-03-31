@@ -11,6 +11,7 @@ module "quicksuite_analytics" {
   quicksight_admin_group = "quicksuite-admin"
   identity_store_id      = tolist(data.aws_ssoadmin_instances.this.identity_store_ids)[0]
   cloudtrail_mode        = "new"
+  s3_kms_key_arn         = "arn:aws:kms:eu-west-1:473649005621:key/0795532b-ce88-4e14-8136-42eedcf5fac7"
 
   categorization_config = {
     enabled         = true

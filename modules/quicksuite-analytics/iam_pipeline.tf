@@ -124,7 +124,12 @@ resource "aws_iam_role_policy" "sfn_permissions" {
         Action   = ["states:StartExecution", "states:DescribeExecution", "states:StopExecution"]
         Resource = aws_sfn_state_machine.log_analytics.arn
       }
-    ] : [])
+    ] : [],
+    var.s3_kms_key_arn != null ? [{
+      Effect   = "Allow"
+      Action   = ["kms:Decrypt", "kms:GenerateDataKey", "kms:DescribeKey"]
+      Resource = var.s3_kms_key_arn
+    }] : [])
   })
 }
 
