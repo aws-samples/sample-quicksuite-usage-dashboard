@@ -128,6 +128,12 @@ resource "aws_iam_role_policy" "sfn_permissions" {
   })
 }
 
+# QuickSight Athena access (AWS-managed policy)
+resource "aws_iam_role_policy_attachment" "quicksight_athena_access" {
+  role       = var.quicksight_service_role_name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSQuicksightAthenaAccess"
+}
+
 # QuickSight S3 access policy
 resource "aws_iam_role_policy" "quicksight_s3_access" {
   name = "QuickSightS3Access-quicksuite"

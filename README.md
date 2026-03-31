@@ -75,6 +75,12 @@ module "quicksuite_analytics" {
 
 The module creates all infrastructure: S3 bucket, CloudWatch log delivery, Lambda functions, Step Functions pipelines, DynamoDB config, Glue catalog, QuickSight datasets, and the full dashboard.
 
+To pin to a specific commit (recommended for production):
+
+```hcl
+  source = "github.com/aws-samples/sample-quicksuite-usage-dashboard//modules/quicksuite-analytics?ref=COMMIT_SHA"
+```
+
 ## Requirements
 
 - Terraform >= 1.9

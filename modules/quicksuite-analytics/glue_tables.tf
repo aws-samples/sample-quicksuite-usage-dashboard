@@ -261,6 +261,10 @@ resource "aws_glue_catalog_table" "user_attributes" {
     }
 
     columns {
+      name = "user_id"
+      type = "string"
+    }
+    columns {
       name = "username"
       type = "string"
     }

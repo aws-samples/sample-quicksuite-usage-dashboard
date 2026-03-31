@@ -103,6 +103,20 @@ locals {
     idle_users            = "<visual-subtitle>\n  <inline font-size=\"12px\" color=\"#666666\">Licensed users with no messages in past 90 days (fixed window, not affected by date filter)</inline>\n</visual-subtitle>"
   }
 
+  # Users tab titles and subtitles
+  users_title = {
+    total_users = "<visual-title>\n  <inline font-size=\"20px\">Total Users</inline>\n</visual-title>"
+    pro_users   = "<visual-title>\n  <inline font-size=\"20px\">Professional Users</inline>\n</visual-title>"
+    ent_users   = "<visual-title>\n  <inline font-size=\"20px\">Enterprise Users</inline>\n</visual-title>"
+    user_table  = "<visual-title>\n  <inline font-size=\"20px\">User Directory</inline>\n</visual-title>"
+  }
+  users_subtitle = {
+    total_users = "<visual-subtitle>\n  <inline font-size=\"12px\" color=\"#666666\">All licensed users from IAM Identity Center</inline>\n</visual-subtitle>"
+    pro_users   = "<visual-subtitle>\n  <inline font-size=\"12px\" color=\"#666666\">Users with Professional license</inline>\n</visual-subtitle>"
+    ent_users   = "<visual-subtitle>\n  <inline font-size=\"12px\" color=\"#666666\">Users with Enterprise license</inline>\n</visual-subtitle>"
+    user_table  = "<visual-subtitle>\n  <inline font-size=\"12px\" color=\"#666666\">Complete list of all licensed users and their attributes</inline>\n</visual-subtitle>"
+  }
+
   # SPICE & Data Health tab titles and subtitles
   spice_title = {
     utilization = "<visual-title>\n  <inline font-size=\"20px\">SPICE Utilization %</inline>\n</visual-title>"
@@ -249,6 +263,11 @@ resource "aws_quicksight_analysis" "quicksuite" {
     data_set_identifiers_declarations {
       data_set_arn = aws_quicksight_data_set.idle_users.arn
       identifier   = "idle-users"
+    }
+
+    data_set_identifiers_declarations {
+      data_set_arn = aws_quicksight_data_set.users.arn
+      identifier   = "users"
     }
 
     dynamic "data_set_identifiers_declarations" {
@@ -894,6 +913,250 @@ resource "aws_quicksight_analysis" "quicksuite" {
             scope      = "SELECTED_VISUALS"
             sheet_id   = "dive-deep"
             visual_ids = ["dd-table-agent-hours"]
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # --- Users sheet filters ---
+
+    # Name text filter
+    filter_groups {
+      filter_group_id = "users-name-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-name-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "Name"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # Email text filter
+    filter_groups {
+      filter_group_id = "users-email-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-email-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "Email"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # Country dropdown filter
+    filter_groups {
+      filter_group_id = "users-country-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-country-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "Country"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # License Type dropdown filter
+    filter_groups {
+      filter_group_id = "users-license-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-license-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "License Type"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # User ID text filter
+    filter_groups {
+      filter_group_id = "users-userid-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-userid-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "User ID"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # Employee Number text filter
+    filter_groups {
+      filter_group_id = "users-empnum-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-empnum-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "Employee Number"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator     = "CONTAINS"
+              select_all_options = "FILTER_ALL_VALUES"
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope    = "ALL_VISUALS"
+            sheet_id = "users"
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # Professional KPI filter
+    filter_groups {
+      filter_group_id = "users-pro-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-pro-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "License Type"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator  = "CONTAINS"
+              category_values = ["Professional"]
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope      = "SELECTED_VISUALS"
+            sheet_id   = "users"
+            visual_ids = ["users-pro-kpi"]
+          }
+        }
+      }
+      cross_dataset = "ALL_DATASETS"
+      status        = "ENABLED"
+    }
+
+    # Enterprise KPI filter
+    filter_groups {
+      filter_group_id = "users-ent-filter-group"
+      filters {
+        category_filter {
+          filter_id = "users-ent-filter"
+          column {
+            data_set_identifier = "users"
+            column_name         = "License Type"
+          }
+          configuration {
+            filter_list_configuration {
+              match_operator  = "CONTAINS"
+              category_values = ["Enterprise"]
+            }
+          }
+        }
+      }
+      scope_configuration {
+        selected_sheets {
+          sheet_visual_scoping_configurations {
+            scope      = "SELECTED_VISUALS"
+            sheet_id   = "users"
+            visual_ids = ["users-ent-kpi"]
           }
         }
       }
@@ -6281,6 +6544,361 @@ resource "aws_quicksight_analysis" "quicksuite" {
       }
     }
 
+    # ==================== Sheet 6: Users ====================
+
+    sheets {
+      sheet_id = "users"
+      name     = "Users"
+
+      sheet_control_layouts {
+        configuration {
+          grid_layout {
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-name-control"
+              column_span  = 6
+              row_span     = 1
+            }
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-email-control"
+              column_span  = 6
+              row_span     = 1
+            }
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-country-control"
+              column_span  = 6
+              row_span     = 1
+            }
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-license-control"
+              column_span  = 6
+              row_span     = 1
+            }
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-userid-control"
+              column_span  = 6
+              row_span     = 1
+            }
+            elements {
+              element_type = "FILTER_CONTROL"
+              element_id   = "users-empnum-control"
+              column_span  = 6
+              row_span     = 1
+            }
+          }
+        }
+      }
+
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-name-control"
+          title             = "Name"
+          source_filter_id  = "users-name-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-email-control"
+          title             = "Email"
+          source_filter_id  = "users-email-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-country-control"
+          title             = "Country"
+          source_filter_id  = "users-country-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-license-control"
+          title             = "License Type"
+          source_filter_id  = "users-license-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-userid-control"
+          title             = "User ID"
+          source_filter_id  = "users-userid-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+      filter_controls {
+        dropdown {
+          filter_control_id = "users-empnum-control"
+          title             = "Employee Number"
+          source_filter_id  = "users-empnum-filter"
+          type              = "MULTI_SELECT"
+        }
+      }
+
+      layouts {
+        configuration {
+          grid_layout {
+            # Row 0-7: 3 KPIs
+            elements {
+              element_type = "VISUAL"
+              element_id   = "users-total-kpi"
+              column_index = 0
+              row_index    = 0
+              column_span  = 12
+              row_span     = 8
+            }
+            elements {
+              element_type = "VISUAL"
+              element_id   = "users-pro-kpi"
+              column_index = 12
+              row_index    = 0
+              column_span  = 12
+              row_span     = 8
+            }
+            elements {
+              element_type = "VISUAL"
+              element_id   = "users-ent-kpi"
+              column_index = 24
+              row_index    = 0
+              column_span  = 12
+              row_span     = 8
+            }
+            # Row 8-27: User table
+            elements {
+              element_type = "VISUAL"
+              element_id   = "users-table"
+              column_index = 0
+              row_index    = 8
+              column_span  = 36
+              row_span     = 20
+            }
+          }
+        }
+      }
+
+      # KPI 1: Total Users
+      visuals {
+        kpi_visual {
+          visual_id = "users-total-kpi"
+          title {
+            format_text {
+              rich_text = local.users_title.total_users
+            }
+          }
+          subtitle {
+            format_text {
+              rich_text = local.users_subtitle.total_users
+            }
+          }
+          chart_configuration {
+            field_wells {
+              values {
+                categorical_measure_field {
+                  field_id = "users-total-count"
+                  column {
+                    data_set_identifier = "users"
+                    column_name         = "User ID"
+                  }
+                  aggregation_function = "DISTINCT_COUNT"
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # KPI 2: Professional Users
+      visuals {
+        kpi_visual {
+          visual_id = "users-pro-kpi"
+          title {
+            format_text {
+              rich_text = local.users_title.pro_users
+            }
+          }
+          subtitle {
+            format_text {
+              rich_text = local.users_subtitle.pro_users
+            }
+          }
+          chart_configuration {
+            field_wells {
+              values {
+                categorical_measure_field {
+                  field_id = "users-pro-count"
+                  column {
+                    data_set_identifier = "users"
+                    column_name         = "User ID"
+                  }
+                  aggregation_function = "DISTINCT_COUNT"
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # KPI 3: Enterprise Users
+      visuals {
+        kpi_visual {
+          visual_id = "users-ent-kpi"
+          title {
+            format_text {
+              rich_text = local.users_title.ent_users
+            }
+          }
+          subtitle {
+            format_text {
+              rich_text = local.users_subtitle.ent_users
+            }
+          }
+          chart_configuration {
+            field_wells {
+              values {
+                categorical_measure_field {
+                  field_id = "users-ent-count"
+                  column {
+                    data_set_identifier = "users"
+                    column_name         = "User ID"
+                  }
+                  aggregation_function = "DISTINCT_COUNT"
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # User Directory table
+      visuals {
+        table_visual {
+          visual_id = "users-table"
+          title {
+            format_text {
+              rich_text = local.users_title.user_table
+            }
+          }
+          subtitle {
+            format_text {
+              rich_text = local.users_subtitle.user_table
+            }
+          }
+          chart_configuration {
+            field_wells {
+              table_aggregated_field_wells {
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-userid"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "User ID"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-empnum"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Employee Number"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-name"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Name"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-email"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Email"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-title"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Job Title"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-dept"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Department"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-country"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Country"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-license"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "License Type"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-role"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "QuickSight Role"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-tier"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "User Tier"
+                    }
+                  }
+                }
+                group_by {
+                  categorical_dimension_field {
+                    field_id = "users-tbl-hours"
+                    column {
+                      data_set_identifier = "users"
+                      column_name         = "Agent Hours Allotment"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     # ==================== Sheet 5: SPICE & Data Health ====================
 
     dynamic "sheets" {
@@ -6957,7 +7575,7 @@ resource "aws_quicksight_analysis" "quicksuite" {
 resource "aws_quicksight_template" "quicksuite" {
   template_id         = "quicksuite-analytics"
   name                = "Amazon Quick Suite Adoption Template"
-  version_description = "v11"
+  version_description = "v12"
 
   source_entity {
     source_analysis {
@@ -6993,6 +7611,10 @@ resource "aws_quicksight_template" "quicksuite" {
         data_set_arn         = aws_quicksight_data_set.idle_users.arn
         data_set_placeholder = "idle-users"
       }
+      data_set_references {
+        data_set_arn         = aws_quicksight_data_set.users.arn
+        data_set_placeholder = "users"
+      }
       dynamic "data_set_references" {
         for_each = var.spice_enabled ? [1] : []
         content {
@@ -7012,7 +7634,7 @@ resource "aws_quicksight_template" "quicksuite" {
 resource "aws_quicksight_dashboard" "quicksuite" {
   dashboard_id        = "quicksuite-analytics"
   name                = "Amazon Quick Suite Adoption"
-  version_description = "v11"
+  version_description = "v12"
 
   source_entity {
     source_template {
@@ -7047,6 +7669,10 @@ resource "aws_quicksight_dashboard" "quicksuite" {
       data_set_references {
         data_set_arn         = aws_quicksight_data_set.idle_users.arn
         data_set_placeholder = "idle-users"
+      }
+      data_set_references {
+        data_set_arn         = aws_quicksight_data_set.users.arn
+        data_set_placeholder = "users"
       }
       dynamic "data_set_references" {
         for_each = var.spice_enabled ? [1] : []
