@@ -2,7 +2,7 @@ resource "aws_quicksight_data_set" "idle_users" {
   aws_account_id = data.aws_caller_identity.current.account_id
   data_set_id    = "quicksuite-idle-users"
   name           = "QuickSuite Idle Users"
-  import_mode    = "DIRECT_QUERY"
+  import_mode    = var.spice_enabled ? "SPICE" : "DIRECT_QUERY"
 
   physical_table_map {
     physical_table_map_id = "idle-users-sql"
