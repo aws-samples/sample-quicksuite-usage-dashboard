@@ -37,10 +37,12 @@ resource "aws_lambda_function" "user_idc_list" {
   source_code_hash = data.archive_file.user_idc_list.output_base64sha256
 
   environment {
-    variables = {
+    variables = merge({
       IDENTITY_STORE_ID = var.identity_store_id
       BUCKET            = aws_s3_bucket.quicksuite_logs.id
-    }
+    }, var.identity_store_role_arn != null ? {
+      IDENTITY_STORE_ROLE_ARN = var.identity_store_role_arn
+    } : {})
   }
 }
 
@@ -57,10 +59,12 @@ resource "aws_lambda_function" "user_idc_describe" {
   source_code_hash = data.archive_file.user_idc_describe.output_base64sha256
 
   environment {
-    variables = {
+    variables = merge({
       IDENTITY_STORE_ID = var.identity_store_id
       BUCKET            = aws_s3_bucket.quicksuite_logs.id
-    }
+    }, var.identity_store_role_arn != null ? {
+      IDENTITY_STORE_ROLE_ARN = var.identity_store_role_arn
+    } : {})
   }
 }
 

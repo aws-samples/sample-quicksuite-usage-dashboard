@@ -109,8 +109,10 @@ resource "aws_s3_bucket_policy" "quicksuite_logs" {
         StringNotLike = {
           "aws:PrincipalArn" = [
             aws_iam_role.lambda_pipeline.arn,
+            aws_iam_role.lambda_user_sync.arn,
             aws_iam_role.lambda_qs_metadata.arn,
             aws_iam_role.sfn.arn,
+            aws_iam_role.sfn_user_sync.arn,
             aws_iam_role.sfn_qs_metadata.arn,
           ]
         }
@@ -129,8 +131,10 @@ resource "aws_s3_bucket_policy" "quicksuite_logs" {
         StringNotLike = {
           "aws:PrincipalArn" = [
             aws_iam_role.lambda_pipeline.arn,
+            aws_iam_role.lambda_user_sync.arn,
             aws_iam_role.lambda_qs_metadata.arn,
             aws_iam_role.sfn.arn,
+            aws_iam_role.sfn_user_sync.arn,
             aws_iam_role.sfn_qs_metadata.arn,
           ]
         }

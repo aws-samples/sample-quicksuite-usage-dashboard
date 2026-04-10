@@ -97,6 +97,7 @@ To pin to a specific commit (recommended for production):
 |----------|------|---------|-------------|
 | `quicksight_admin_group` | string | *required* | QuickSight group for dashboard permissions |
 | `identity_store_id` | string | *required* | IAM Identity Center Identity Store ID |
+| `identity_store_role_arn` | string | `null` | IAM role ARN in management account for cross-account Identity Store access (Control Tower setups) |
 | `quicksight_namespace` | string | `"default"` | QuickSight namespace |
 | `s3_kms_key_arn` | string | `null` | Optional KMS key for S3 encryption (AES256 if null) |
 | `spice_enabled` | bool | `true` | Enable SPICE caching (recommended for production) |
@@ -159,6 +160,50 @@ aws kms put-key-policy --key-id YOUR_KEY_ARN --policy-name default --policy file
 ```
 
 If you don't need KMS encryption, leave `s3_kms_key_arn = null` (default) --- the bucket will use AES256 (SSE-S3) and no key policy changes are needed.
+
+### Cross-account IAM Identity Center (Control Tower)
+
+If IAM Identity Center is in a different account (common with AWS Control Tower), the user sync Lambdas need to assume a role in the management account to access the Identity Store. Set `identity_store_role_arn` to a role in the management account:
+
+```hcl
+identity_store_id       = "d-xxxxxxxxxx"
+identity_store_role_arn = "arn:aws:iam::MANAGEMENT_ACCOUNT:role/quicksuite-idc-reader"
+```
+
+After deploying, run `terraform output identity_store_cross_account_role_policy` to get the pre-filled policies. Or manually create a role in the management account (e.g., `quicksuite-idc-reader`) with these two policies:
+
+**Trust policy** (replace `MEMBER_ACCOUNT_ID` with the account where the module is deployed):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": "arn:aws:iam::MEMBER_ACCOUNT_ID:role/quicksuite-lambda-user-sync-role"
+    },
+    "Action": "sts:AssumeRole"
+  }]
+}
+```
+
+**Permissions policy**:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "identitystore:ListUsers",
+      "identitystore:DescribeUser"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+
+Without this, the user sync will fail with `AccessDeniedException` when calling Identity Store APIs from the member account.
 
 ### Pre-built Lambda layer
 
@@ -367,6 +412,7 @@ The S3 bucket policy includes explicit Deny statements on PII-containing prefixe
 | `dashboard_id` | QuickSight dashboard ID |
 | `user_sync_sfn_arn` | User sync state machine ARN |
 | `cloudtrail_cross_account_bucket_policy` | Ready-to-use bucket policy JSON for cross-account CloudTrail (null when not applicable) |
+| `identity_store_cross_account_role_policy` | Trust + permissions policies for management account IDC role (null when not applicable) |
 
 ## Development
 

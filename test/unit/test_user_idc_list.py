@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+
 _LAMBDA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../modules/quicksuite-analytics/lambda/user_idc_list")
 )
@@ -91,3 +92,51 @@ def test_user_idc_list_empty(mock_identitystore, mock_s3, monkeypatch):
     call_kwargs = mock_s3.put_object.call_args.kwargs
     written_data = json.loads(call_kwargs["Body"].decode("utf-8"))
     assert written_data == []
+
+
+@patch.dict(os.environ, {"IDENTITY_STORE_ID": "d-test", "BUCKET": "test-bucket", "IDENTITY_STORE_ROLE_ARN": "arn:aws:iam::999999999999:role/test-role"})
+def test_cross_account_assumes_role():
+    """When IDENTITY_STORE_ROLE_ARN is set, should assume role before calling Identity Store."""
+    sys.modules.pop("index", None)
+
+    mock_sts = MagicMock()
+    mock_sts.assume_role.return_value = {
+        "Credentials": {
+            "AccessKeyId": "AKIA_TEST",
+            "SecretAccessKey": "secret_test",
+            "SessionToken": "token_test",
+        }
+    }
+    mock_idstore = MagicMock()
+    mock_idstore.get_paginator.return_value.paginate.return_value = [
+        {"Users": [{"UserId": "u1", "UserName": "alice"}]}
+    ]
+    mock_s3 = MagicMock()
+    mock_s3.put_object.return_value = {}
+
+    def client_side_effect(service, **kwargs):
+        if service == "sts":
+            return mock_sts
+        if service == "identitystore":
+            return mock_idstore
+        if service == "s3":
+            return mock_s3
+        return MagicMock()
+
+    with patch("boto3.client", side_effect=client_side_effect) as mock_boto3_client:
+        import index
+
+        result = index.handler({"bucket": "test-bucket"}, None)
+
+    mock_sts.assume_role.assert_called_once_with(
+        RoleArn="arn:aws:iam::999999999999:role/test-role",
+        RoleSessionName="quicksuite-idc-sync"
+    )
+    # Verify identitystore client was created with assumed role credentials
+    mock_boto3_client.assert_any_call(
+        "identitystore",
+        aws_access_key_id="AKIA_TEST",
+        aws_secret_access_key="secret_test",
+        aws_session_token="token_test",
+    )
+    assert result["idc_count"] == 1

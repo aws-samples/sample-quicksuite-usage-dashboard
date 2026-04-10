@@ -3,7 +3,25 @@ import os
 
 import boto3
 
-identitystore = boto3.client("identitystore")
+
+def get_identitystore_client():
+    role_arn = os.environ.get("IDENTITY_STORE_ROLE_ARN")
+    if role_arn:
+        sts = boto3.client("sts")
+        creds = sts.assume_role(
+            RoleArn=role_arn,
+            RoleSessionName="quicksuite-idc-sync"
+        )["Credentials"]
+        return boto3.client(
+            "identitystore",
+            aws_access_key_id=creds["AccessKeyId"],
+            aws_secret_access_key=creds["SecretAccessKey"],
+            aws_session_token=creds["SessionToken"],
+        )
+    return boto3.client("identitystore")
+
+
+identitystore = get_identitystore_client()
 s3 = boto3.client("s3")
 
 

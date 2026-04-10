@@ -38,6 +38,12 @@ variable "identity_store_id" {
   type        = string
 }
 
+variable "identity_store_role_arn" {
+  description = "ARN of an IAM role in the management account to assume for Identity Store API calls. Required for cross-account setups (e.g., Control Tower). When null, calls Identity Store directly (same-account)."
+  type        = string
+  default     = null
+}
+
 variable "lambda_layer_arn" {
   description = "ARN of a pre-built Lambda layer containing boto3 and pyarrow. When provided, skips Docker build and uses this layer for all functions."
   type        = string

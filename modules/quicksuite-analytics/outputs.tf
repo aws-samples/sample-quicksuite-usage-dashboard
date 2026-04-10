@@ -14,9 +14,31 @@ output "user_sync_sfn_arn" {
   value = aws_sfn_state_machine.user_sync.arn
 }
 
+output "identity_store_cross_account_role_policy" {
+  description = "Trust and permissions policies to create in the management account for cross-account IDC access. Only populated when identity_store_role_arn is set."
+  value = var.identity_store_role_arn != null ? {
+    trust_policy = {
+      Version = "2012-10-17"
+      Statement = [{
+        Effect    = "Allow"
+        Principal = { AWS = aws_iam_role.lambda_user_sync.arn }
+        Action    = "sts:AssumeRole"
+      }]
+    }
+    permissions_policy = {
+      Version = "2012-10-17"
+      Statement = [{
+        Effect   = "Allow"
+        Action   = ["identitystore:ListUsers", "identitystore:DescribeUser"]
+        Resource = "*"
+      }]
+    }
+  } : null
+}
+
 output "cloudtrail_cross_account_bucket_policy" {
-  description = "Bucket policy statement to add to the logging account's CloudTrail bucket. Only populated when cloudtrail_mode = 'existing'. Run: terraform output -raw cloudtrail_cross_account_bucket_policy"
-  value = var.cloudtrail_mode == "existing" && var.cloudtrail_config != null ? jsonencode({
+  description = "Bucket policy statement to add to the logging account's CloudTrail bucket. Only populated when cloudtrail_mode = 'existing'."
+  value = var.cloudtrail_mode == "existing" && var.cloudtrail_config != null ? {
     Sid    = "AllowQuickSuiteAthenaCrossAccount"
     Effect = "Allow"
     Principal = {
@@ -27,5 +49,5 @@ output "cloudtrail_cross_account_bucket_policy" {
       "arn:aws:s3:::${var.cloudtrail_config.s3_bucket}",
       "arn:aws:s3:::${var.cloudtrail_config.s3_bucket}/${local.cloudtrail_prefix}/*"
     ]
-  }) : null
+  } : null
 }

@@ -67,6 +67,10 @@ resource "aws_iam_role_policy" "user_sync_lambda_permissions" {
       Effect   = "Allow"
       Action   = ["kms:Decrypt", "kms:GenerateDataKey", "kms:DescribeKey"]
       Resource = var.s3_kms_key_arn
+    }] : [], var.identity_store_role_arn != null ? [{
+      Effect   = "Allow"
+      Action   = "sts:AssumeRole"
+      Resource = var.identity_store_role_arn
     }] : [])
   })
 }
